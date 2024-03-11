@@ -16,4 +16,10 @@
     <PackageReference Include="Guilded.Webhook" Version="1.7.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Data\configjson.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

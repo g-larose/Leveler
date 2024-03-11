@@ -13,17 +13,17 @@ namespace Leveler
 {
     public class Bot 
     {
-        private static readonly string? json = File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Config", "config.json"));
+        private static readonly string? json = File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "configjson.json"));
         private static readonly string? token = JsonSerializer.Deserialize<ConfigJson>(json!)!.Token!;
         private static readonly string? prefix = JsonSerializer.Deserialize<ConfigJson>(json!)!.Prefix!;
         private static readonly string? timePattern = "hh:mm:ss tt";
-
+        private List<Guid>? channels = new();
         public async Task RunAsync()
         {
             await using var client = new GuildedBotClient(token!);
 
             client.Prepared
-                .Subscribe(async me =>
+                .Subscribe(me =>
                 {
                     var time = DateTime.Now.ToString(timePattern);
                     var date = DateTime.Now.ToShortDateString();
@@ -43,7 +43,7 @@ namespace Leveler
             client.Reconnected
                 .Where(x => x.Type != ReconnectionType.Initial)
                 .Where(x => x.Type != ReconnectionType.NoMessageReceived)
-                .Subscribe(me =>
+                .Subscribe(async me =>
                 {
 
                     var time = DateTime.Now.ToString(timePattern);
@@ -52,6 +52,46 @@ namespace Leveler
                     Console.WriteLine($"[{date}][{time}][INFO]  [{client.Name}] reconnected to gateway...");
                     Console.ForegroundColor = ConsoleColor.DarkGreen;
                     Console.WriteLine($"[{date}][{time}][INFO]  [{client.Name}] listening for events...");
+
+                   
+                });
+
+            client.ServerAdded
+                .Subscribe(async server =>
+                {
+                    var time = DateTime.Now.ToString(timePattern);
+                    var date = DateTime.Now.ToShortDateString();
+                    try
+                    {
+                        var serverId = server.ServerId;
+                        var defaultChannelId = server.Server.DefaultChannelId;
+                        channels!.Add((Guid)defaultChannelId!);
+                        await server.ParentClient.CreateHookMessageAsync((Guid)defaultChannelId, $"[{date}] [{time}] Leveler is online!");
+                    }
+                    catch(Exception e)
+                    {
+                        Console.ForegroundColor = ConsoleColor.DarkRed;
+                        Console.WriteLine($"[{date}][{time}][ERROR]  [{client.Name}] {e.Message}");
+                    }
+                });
+
+            client.MessageCreated
+                .Subscribe(async msg =>
+                {
+                    var time = DateTime.Now.ToString(timePattern);
+                    var date = DateTime.Now.ToShortDateString();
+                    var serverId = 0;
+                    var authorId = 0;
+                    var defaultChannelId = Guid.Empty;
+
+                    try
+                    {
+
+                    }
+                    catch(Exception e)
+                    {
+
+                    }
                 });
 
 
